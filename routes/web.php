@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\KalkulatorController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\QrisPaymentController;
 use App\Http\Controllers\AdminController;
 use App\Models\Transaction;
 
@@ -68,6 +69,10 @@ Route::middleware(['auth'])->group(function () {
     // 3. RUTE KHUSUS NASABAH
     Route::get('/bayar', function () { return view('pages.bayar'); })->name('bayar');
     Route::post('/transaksi/store', [TransactionController::class, 'store'])->name('transaksi.store');
+
+    // Pembayaran QRIS via Midtrans (buat QR + polling status)
+    Route::post('/qris/create', [QrisPaymentController::class, 'createQris'])->name('qris.create');
+    Route::get('/qris/status/{orderId}', [QrisPaymentController::class, 'checkStatus'])->name('qris.status');
     Route::get('/marketplace', function () { return view('pages.marketplace'); })->name('marketplace');
 
 

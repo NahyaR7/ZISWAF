@@ -40,5 +40,15 @@ return [
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'redirect' => env('GOOGLE_REDIRECT_URI', 'http://localhost:8000/auth/google/callback'),
     ],
+
+    'midtrans' => [
+        // Server Key & Client Key didapat dari Dashboard Midtrans (Settings > Access Keys)
+        'server_key' => env('MIDTRANS_SERVER_KEY'),
+        'client_key' => env('MIDTRANS_CLIENT_KEY'),
+        // true = produksi, false = sandbox (testing). Default sandbox untuk dummy.
+        'is_production' => env('MIDTRANS_IS_PRODUCTION', false),
+        // Acquirer QRIS: 'gopay' atau 'airpay shopee'
+        'qris_acquirer' => env('MIDTRANS_QRIS_ACQUIRER', 'gopay'),
+    ],
 ];
 

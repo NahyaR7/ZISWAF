@@ -73,31 +73,13 @@ class PaymentWebhookController extends Controller
     }
 
     /**
-     * Fungsi Privat untuk mengeksekusi penerbitan Kwitansi secara otomatis
+     * Eksekusi penerbitan Kwitansi secara otomatis.
+     *
+     * Logika penyelesaian transaksi dipusatkan di Transaction::tandaiBerhasil()
+     * agar konsisten dengan jalur pengecekan status QRIS (polling).
      */
     private function prosesTransaksiBerhasil($transaction)
     {
-        // Hindari proses ganda jika transaksi sudah berstatus Tersalur
-        if ($transaction->status === 'Tersalur') return;
-
-        // Generate Nomor Kwitansi Otomatis
-        $kwitansiNumber = 'KW-' . date('Y') . '-' . rand(1000, 9999);
-
-        // Update ke Database
-        $transaction->update([
-            'status' => 'Tersalur',
-            'kwitansi_number' => $kwitansiNumber,
-            'verified_at' => now(),
-            'verified_by' => null // Null menandakan diverifikasi oleh Sistem/API
-        ]);
-
-        $transaction->payment->update(['status_payment' => 'Success']);
-
-        // Kirim Notifikasi Real-time ke Nasabah
-        if ($transaction->user) {
-            $transaction->user->notify(new ZiswafNotification(
-                "Pembayaran instan {$transaction->jenisZiswaf->nama_jenis} Rp " . number_format($transaction->amount, 0, ',', '.') . " BERHASIL divalidasi sistem. Kwitansi: " . $kwitansiNumber
-            ));
-        }
+        $transaction->tandaiBerhasil(); // verifiedBy null = otomatis oleh Sistem/API
     }
 }

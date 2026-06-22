@@ -113,12 +113,12 @@
                   </select>
               </div>
 
-              <!-- Upload Bukti Transfer -->
-              <div class="input-group" id="wrap-bukti-transfer" style="display:block;">
+              {{-- Upload Bukti Transfer dinonaktifkan: pembayaran kini ditangani Midtrans (QRIS) --}}
+              {{-- <div class="input-group" id="wrap-bukti-transfer" style="display:block;">
                   <label class="input-label">Upload Bukti Transfer <span style="color:var(--g4)">*</span></label>
                   <input type="file" class="input-field" id="bayar-bukti" accept="image/*,.pdf" style="padding: 9px 16px;">
                   <div style="font-size:11px;color:var(--muted);margin-top:4px">Format JPG, PNG, PDF. Wajib dilampirkan untuk metode Transfer Manual.</div>
-              </div>
+              </div> --}}
 
               <div class="input-group">
                   <label class="input-label">Catatan (opsional)</label>
@@ -160,6 +160,41 @@
             </div>
           </div>
           <button class="btn btn-primary" onclick="prosesPembayaran()" style="width:100%;justify-content:center;padding:15px">✅ Konfirmasi & Bayar Sekarang</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step QRIS: Scan & Bayar (Midtrans) -->
+    <div id="bayar-step-qris" style="display:none">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📱 Scan QRIS untuk Membayar</div>
+          <button class="btn btn-ghost btn-sm" onclick="batalkanQris()">← Kembali</button>
+        </div>
+        <div class="card-body" style="text-align:center; padding:32px 36px">
+          <div class="alert alert-info mb-20" style="text-align:left">
+            <span style="font-size:18px">📲</span>
+            <div>Buka aplikasi <strong>GoPay, DANA, OVO, ShopeePay, atau m-Banking</strong> Anda, lalu scan kode QR di bawah ini. Status akan otomatis diperbarui setelah pembayaran berhasil.</div>
+          </div>
+
+          <div style="display:inline-block; background:#fff; padding:18px; border-radius:18px; border:1px solid var(--border); box-shadow:0 8px 24px rgba(0,0,0,0.06)">
+            <img id="qris-image" src="" alt="QRIS Code" style="width:260px; height:260px; object-fit:contain; display:block" />
+          </div>
+
+          <div style="margin-top:18px">
+            <div style="font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; font-weight:600">Total Pembayaran</div>
+            <div id="qris-amount" style="font-family:'Playfair Display',serif; font-size:30px; font-weight:700; color:var(--g2)">Rp 0</div>
+            <div style="font-size:12px; color:var(--muted); margin-top:4px">Kode Transaksi: <span id="qris-order-id" style="font-family:monospace">-</span></div>
+          </div>
+
+          <div id="qris-status-box" style="margin-top:22px; display:flex; align-items:center; justify-content:center; gap:10px; font-size:14px; color:var(--gold); font-weight:600">
+            <span class="qris-spinner" style="width:16px; height:16px; border:3px solid var(--border); border-top-color:var(--gold); border-radius:50%; display:inline-block; animation:spin 0.8s linear infinite"></span>
+            <span id="qris-status-text">Menunggu pembayaran...</span>
+          </div>
+
+          <div style="margin-top:18px; font-size:12px; color:var(--muted)">
+            🔒 Pembayaran diproses aman oleh <strong>Midtrans</strong> · Mode Sandbox (Testing)
+          </div>
         </div>
       </div>
     </div>

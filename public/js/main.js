@@ -345,15 +345,16 @@ function goStep3() {
   const lembaga = document.getElementById('bayar-lembaga').value;
   
   if(!nominal || nominal < 10000) { showToast('⚠️ Minimal nominal transaksi adalah Rp 10.000'); return; }
-  
-  if (metode === 'Transfer Bank') {
-      const fileInput = document.getElementById('bayar-bukti');
-      if (fileInput && fileInput.files.length === 0) {
-          showToast('⚠️ Mohon upload bukti transfer terlebih dahulu!');
-          return;
-      }
-  }
-  
+
+  // Validasi upload bukti transfer dinonaktifkan: pembayaran ditangani Midtrans.
+  // if (metode === 'Transfer Bank') {
+  //     const fileInput = document.getElementById('bayar-bukti');
+  //     if (fileInput && fileInput.files.length === 0) {
+  //         showToast('⚠️ Mohon upload bukti transfer terlebih dahulu!');
+  //         return;
+  //     }
+  // }
+
   document.getElementById('bayar-step2').style.display = 'none';
   const step3 = document.getElementById('bayar-step3');
   step3.style.display = 'block';
@@ -380,8 +381,13 @@ function goStep3() {
 }
 
 async function prosesPembayaran() {
+  // Metode QRIS memakai integrasi Midtrans (QR Code + polling status).
+  if (document.getElementById('bayar-metode').value === 'QRIS') {
+    return bayarQris();
+  }
+
   document.getElementById('bayar-step3').style.display = 'none';
-  
+
   const step4 = document.getElementById('bayar-step4');
   step4.style.display = 'block';
   step4.style.animation = 'fadeIn 0.4s ease';
@@ -399,10 +405,11 @@ async function prosesPembayaran() {
       if (elmHarta) formData.append('kategori_harta', elmHarta.options[elmHarta.selectedIndex].text);
   }
   
-  const fileInput = document.getElementById('bayar-bukti');
-  if (fileInput && fileInput.files.length > 0) {
-      formData.append('bukti_bayar', fileInput.files[0]);
-  }
+  // Upload bukti transfer dinonaktifkan: pembayaran ditangani Midtrans.
+  // const fileInput = document.getElementById('bayar-bukti');
+  // if (fileInput && fileInput.files.length > 0) {
+  //     formData.append('bukti_bayar', fileInput.files[0]);
+  // }
 
   try {
       const response = await fetch('/transaksi/store', {
@@ -457,6 +464,136 @@ async function prosesPembayaran() {
   } catch(e) {
       showToast('❌ Terjadi kesalahan jaringan saat menyimpan data');
   }
+}
+
+// ==========================================
+// PEMBAYARAN QRIS (MIDTRANS)
+// ==========================================
+let qrisPollTimer = null;
+let qrisOrderId = null;
+
+async function bayarQris() {
+  const nominal = parseInt(document.getElementById('bayar-nominal').value) || 0;
+  const lembaga = document.getElementById('bayar-lembaga').value;
+
+  const payload = {
+    jenis_ziswaf: selectedZiswafType,
+    nominal: nominal,
+    lembaga: lembaga,
+  };
+  if (selectedZiswafType === 'Zakat') {
+    const elmHarta = document.getElementById('bayar-jenis-harta');
+    if (elmHarta) payload.kategori_harta = elmHarta.options[elmHarta.selectedIndex].text;
+  }
+
+  showToast('⏳ Membuat kode QRIS...');
+
+  try {
+    const response = await fetch('/qris/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+      },
+      body: JSON.stringify(payload),
+    });
+    const result = await response.json();
+
+    if (!result.success) {
+      showToast('❌ ' + (result.message || 'Gagal membuat QRIS. Cek konfigurasi Midtrans.'));
+      return;
+    }
+
+    // Tampilkan layar QRIS
+    document.getElementById('bayar-step3').style.display = 'none';
+    const stepQris = document.getElementById('bayar-step-qris');
+    stepQris.style.display = 'block';
+    stepQris.style.animation = 'fadeIn 0.4s ease';
+
+    document.getElementById('qris-image').src = result.qr_url;
+    document.getElementById('qris-amount').textContent = 'Rp ' + result.amount.toLocaleString('id-ID');
+    document.getElementById('qris-order-id').textContent = result.order_id;
+    document.getElementById('qris-status-text').textContent = 'Menunggu pembayaran...';
+
+    qrisOrderId = result.order_id;
+    mulaiPollingQris(result.order_id);
+  } catch (e) {
+    showToast('❌ Terjadi kesalahan jaringan saat membuat QRIS');
+  }
+}
+
+function mulaiPollingQris(orderId) {
+  hentikanPollingQris();
+  // Cek status tiap 3 detik hingga lunas / kadaluarsa.
+  qrisPollTimer = setInterval(() => cekStatusQris(orderId), 3000);
+}
+
+function hentikanPollingQris() {
+  if (qrisPollTimer) {
+    clearInterval(qrisPollTimer);
+    qrisPollTimer = null;
+  }
+}
+
+async function cekStatusQris(orderId) {
+  try {
+    const response = await fetch('/qris/status/' + encodeURIComponent(orderId), {
+      headers: { 'Accept': 'application/json' },
+    });
+    const result = await response.json();
+    if (!result.success) return;
+
+    if (result.paid) {
+      hentikanPollingQris();
+      document.getElementById('qris-status-text').textContent = '✅ Pembayaran diterima!';
+      showToast('🎉 Pembayaran QRIS berhasil! Kwitansi terbit.');
+      setTimeout(() => tampilkanSuksesQris(result), 800);
+    } else if (result.status === 'Batal') {
+      hentikanPollingQris();
+      document.getElementById('qris-status-text').textContent = '⌛ QRIS kadaluarsa / dibatalkan.';
+      showToast('⚠️ Pembayaran QRIS kadaluarsa atau dibatalkan.');
+    }
+  } catch (e) {
+    // Abaikan error sementara; polling berikutnya akan mencoba lagi.
+  }
+}
+
+function tampilkanSuksesQris(result) {
+  document.getElementById('bayar-step-qris').style.display = 'none';
+  const step5 = document.getElementById('bayar-step5');
+  step5.style.display = 'block';
+  step5.style.animation = 'fadeIn 0.5s ease';
+  setStep(5);
+
+  const nama = document.getElementById('bayar-nama').value;
+  const fmt = n => 'Rp ' + parseInt(n).toLocaleString('id-ID');
+
+  const kwId = document.getElementById('kw-id');
+  if (kwId && result.kwitansi_number) kwId.textContent = 'No. ' + result.kwitansi_number;
+
+  const kwitansiBody = document.getElementById('kwitansi-final-body');
+  if (kwitansiBody) {
+    kwitansiBody.innerHTML = `
+      <div class="kwitansi-row"><span class="kw-label">Kode Transaksi</span><span class="kw-value" style="font-family:monospace">${result.order_id}</span></div>
+      <div class="kwitansi-row"><span class="kw-label">No. Kwitansi</span><span class="kw-value" style="font-family:monospace">${result.kwitansi_number || '-'}</span></div>
+      <div class="kwitansi-row"><span class="kw-label">Tanggal</span><span class="kw-value">${result.date}</span></div>
+      <div class="kwitansi-row"><span class="kw-label">Jenis</span><span class="kw-value">${selectedZiswafType}</span></div>
+      <div class="kwitansi-row"><span class="kw-label">Muzakki</span><span class="kw-value">${nama}</span></div>
+      <div class="kwitansi-row"><span class="kw-label">Metode</span><span class="kw-value">QRIS (Midtrans)</span></div>
+      <div class="kwitansi-row"><span class="kw-label">Lembaga</span><span class="kw-value">${document.getElementById('bayar-lembaga').value}</span></div>
+      <div class="kwitansi-total"><span style="font-weight:700;font-size:14px;color:var(--muted)">TOTAL DIBAYAR</span><span style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--g2)">${fmt(document.getElementById('bayar-nominal').value)}</span></div>
+      <div style="margin-top:16px;text-align:center;font-family:'Amiri',serif;font-size:15px;color:var(--gold);opacity:0.75">جَزَاكَ اللهُ خَيْرًا كَثِيرًا</div>`;
+  }
+}
+
+function batalkanQris() {
+  hentikanPollingQris();
+  document.getElementById('bayar-step-qris').style.display = 'none';
+  const s3 = document.getElementById('bayar-step3');
+  s3.style.display = 'block';
+  s3.style.animation = 'fadeIn 0.3s ease';
+  setStep(3);
 }
 
 function goBackStep(step) {
