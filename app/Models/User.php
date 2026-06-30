@@ -1,0 +1,57 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
+class User extends Authenticatable
+{
+    use HasFactory, Notifiable;
+
+    /**
+     * Membuka semua atribut agar bebas diisi oleh Seeder
+     * (Menghapus limitasi default Laravel)
+     */
+    protected $guarded = ['id'];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
+
+    // =====================================
+    // RELASI DATABASE SESUAI CLASS DIAGRAM
+    // =====================================
+    
+    // Relasi: Satu Nasabah memiliki banyak Transaksi Utama
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
+    // Relasi: Satu Nasabah memiliki banyak Transaksi Harta
+    public function transaksiHarta()
+    {
+        return $this->hasMany(TransaksiHarta::class);
+    }
+}
