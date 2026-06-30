@@ -20,14 +20,14 @@ class AdminController extends Controller
     public function verifikasiTransaksi($id)
     {
         $trx = Transaction::findOrFail($id);
-        
+
         $trx->update([
-            'status' => 'Tersalur',
+            'status' => 'Menunggu Penyaluran',
             'kwitansi_number' => 'KW-' . date('Y') . '-' . rand(1000, 9999),
             'verified_by' => auth()->id(),
             'verified_at' => now()
         ]);
-        
+
         if($trx->payment) {
             $trx->payment->update(['status_payment' => 'Success']);
         }
@@ -35,6 +35,30 @@ class AdminController extends Controller
         $trx->user->notify(new ZiswafNotification("Pembayaran {$trx->jenisZiswaf->nama_jenis} Rp " . number_format($trx->amount, 0, ',', '.') . " telah diverifikasi. Kwitansi: " . $trx->kwitansi_number));
 
         return redirect()->back()->with('success', 'Transaksi berhasil diverifikasi dan kwitansi diterbitkan!');
+    }
+
+    public function simpanPenyaluran(Request $request, $id)
+    {
+        $request->validate([
+            'bukti_penyaluran' => 'required|file|mimes:jpg,jpeg,png,mp4|max:15360',
+            'keterangan_penyaluran' => 'nullable|string'
+        ]);
+
+        $trx = Transaction::findOrFail($id);
+
+        if ($request->hasFile('bukti_penyaluran')) {
+            $file = $request->file('bukti_penyaluran');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('uploads/penyaluran'), $filename);
+            $trx->bukti_penyaluran = 'uploads/penyaluran/' . $filename;
+        }
+
+        $trx->keterangan_penyaluran = $request->keterangan_penyaluran;
+        $trx->tanggal_penyaluran = now();
+        $trx->status = 'Tersalur';
+        $trx->save();
+
+        return redirect()->back()->with('success', 'Bukti penyaluran berhasil diunggah dan diteruskan ke Nasabah!');
     }
 
     public function laporan()
@@ -52,7 +76,7 @@ class AdminController extends Controller
         $pctWakaf = $totalPenerimaan > 0 ? round(($totalWakaf / $totalPenerimaan) * 100) : 0;
 
         return view('pages.laporan', compact(
-            'transactions', 'riwayatLaporan', 
+            'transactions', 'riwayatLaporan',
             'totalPenerimaan', 'totalZakat', 'totalInfaq', 'totalWakaf', 'pctZakat', 'pctInfaq', 'pctWakaf'
         ));
     }
@@ -86,9 +110,6 @@ class AdminController extends Controller
         return redirect()->back()->with('success', $pesan);
     }
 
-    // ==========================================
-    // FUNGSI BARU: EXPORT EXCEL & PDF
-    // ==========================================
     public function exportExcel()
     {
         $namaFile = 'Laporan_ZISWAF_' . date('Y_m') . '.xlsx';
@@ -97,7 +118,6 @@ class AdminController extends Controller
 
     public function exportPDF()
     {
-        // Hanya ambil yang Tersalur
         $transactions = Transaction::with(['user', 'jenisZiswaf', 'payment'])
                         ->where('status', 'Tersalur')
                         ->orderBy('created_at', 'asc')
@@ -134,35 +154,4 @@ class AdminController extends Controller
         KategoriZakat::destroy($id);
         return redirect()->back()->with('success', 'Kategori Zakat berhasil dihapus!');
     }
-<<<<<<< HEAD
-
-    // ==========================================
-    // UNGGAH BUKTI PENYALURAN (FOTO/VIDEO)
-    // ==========================================
-    public function uploadPenyaluran(Request $request, $id)
-    {
-        $request->validate([
-            'bukti_penyaluran' => 'required|file|mimes:jpg,jpeg,png,mp4|max:10240', // Max 10MB
-            'keterangan_penyaluran' => 'required|string'
-        ]);
-
-        $trx = Transaction::findOrFail($id);
-
-        if ($request->hasFile('bukti_penyaluran')) {
-            $file = $request->file('bukti_penyaluran');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            // Menyimpan file ke folder public/uploads/penyaluran
-            $file->move(public_path('uploads/penyaluran'), $filename);
-            
-            $trx->bukti_penyaluran = 'uploads/penyaluran/' . $filename;
-        }
-
-        $trx->keterangan_penyaluran = $request->keterangan_penyaluran;
-        $trx->tanggal_penyaluran = now();
-        $trx->save();
-
-        return redirect()->back()->with('success', 'Bukti penyaluran berhasil diunggah dan diteruskan ke Nasabah!');
-    }
-=======
->>>>>>> 43eb9314b80869898d386f72920947b2fe795e46
 }

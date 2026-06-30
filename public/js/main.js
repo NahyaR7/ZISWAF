@@ -136,19 +136,28 @@ function renderPrograms(filter='semua') {
 function toggleGramInput() {
   const kategori = document.getElementById('kategori-harta').value;
   const wrapGram = document.getElementById('wrap-jumlah-gram');
+  const wrapTunai = document.getElementById('wrap-harta-tunai');
   const gramInput = document.getElementById('gram-input');
-  
+  const tunaiInput = document.getElementById('tunai-input');
+
   if (!wrapGram) return;
 
   if (kategori === 'Emas' || kategori === 'Perak') {
+    // Emas/Perak: tampilkan input gram, sembunyikan harta tunai
     wrapGram.style.display = 'block';
     wrapGram.style.animation = 'fadeIn 0.3s ease';
+    if (wrapTunai) wrapTunai.style.display = 'none';
+    if (tunaiInput) tunaiInput.value = 0;
   } else {
-    // Jika pilih Ternak/Kebun, sembunyikan input gram dan reset isinya
+    // Selain emas/perak: tampilkan harta tunai, sembunyikan input gram
     wrapGram.style.display = 'none';
-    if(gramInput) gramInput.value = 0;
+    if (gramInput) gramInput.value = 0;
+    if (wrapTunai) {
+      wrapTunai.style.display = 'block';
+      wrapTunai.style.animation = 'fadeIn 0.3s ease';
+    }
   }
-  
+
   // Hitung ulang total harta
   hitungTotalHarta();
 }
