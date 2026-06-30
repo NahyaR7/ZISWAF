@@ -20,7 +20,11 @@
           <select class="input-field"><option>Semua</option><option>Zakat</option><option>Infaq</option><option>Wakaf</option></select>
         </div>
         <div style="flex:1;min-width:160px"><label class="input-label">Status</label>
+<<<<<<< HEAD
           <select class="input-field"><option>Semua</option><option>Tersalur</option><option>Menunggu Penyaluran</option><option>Diproses</option></select>
+=======
+          <select class="input-field"><option>Semua</option><option>Tersalur</option><option>Diproses</option><option>Gagal</option></select>
+>>>>>>> 43eb9314b80869898d386f72920947b2fe795e46
         </div>
         <div style="flex:1;min-width:160px"><label class="input-label">Periode</label>
           <select class="input-field"><option>Mei 2026</option><option>April 2026</option><option>All Time</option></select>
@@ -46,10 +50,14 @@
                         $namaMember = $trx->user->name ?? 'Hamba Allah';
                         $metode = $trx->payment->metode ?? 'Transfer Bank';
                         $typeBadge = $jenis === 'Zakat' ? 'badge-green' : ($jenis === 'Wakaf' ? 'badge-blue' : 'badge-gold');
+<<<<<<< HEAD
                         
                         if ($trx->status === 'Tersalur') $statusBadge = 'badge-green';
                         elseif ($trx->status === 'Menunggu Penyaluran') $statusBadge = 'badge-blue';
                         else $statusBadge = 'badge-gold';
+=======
+                        $statusBadge = $trx->status === 'Tersalur' ? 'badge-green' : ($trx->status === 'Diproses' ? 'badge-gold' : 'badge-red');
+>>>>>>> 43eb9314b80869898d386f72920947b2fe795e46
                     @endphp
                     <tr>
                         <td style="font-family:monospace;font-size:11.5px">{{ $trx->transaction_code }}</td>
@@ -59,6 +67,7 @@
                         <td style="font-size:12px;color:var(--muted)">{{ $metode }}</td>
                         <td style="font-size:12px;color:var(--muted)">{{ $trx->created_at->format('d M Y') }}</td>
                         <td><span class="badge {{ $statusBadge }}">{{ $trx->status }}</span></td>
+<<<<<<< HEAD
                         <td style="display:flex; gap:6px; align-items:center;">
                             <button class="btn btn-outline btn-sm" onclick="viewKwitansi('{{ $trx->kwitansi_number ?? '-' }}', '{{ $trx->transaction_code }}', '{{ $trx->created_at->format('d M Y') }}', '{{ $jenis }}', '{{ $namaMember }}', '{{ $trx->organization }}', '{{ $metode }}', 'Rp {{ number_format($trx->amount, 0, ',', '.') }}')" title="Lihat Kwitansi">🧾</button>
                             
@@ -107,12 +116,29 @@
                     </div>
                     @endif
 
+=======
+                        <td style="display:flex; gap:6px;">
+                            <button class="btn btn-outline btn-sm" onclick="viewKwitansi('{{ $trx->kwitansi_number ?? '-' }}', '{{ $trx->transaction_code }}', '{{ $trx->created_at->format('d M Y') }}', '{{ $jenis }}', '{{ $namaMember }}', '{{ $trx->organization }}', '{{ $metode }}', 'Rp {{ number_format($trx->amount, 0, ',', '.') }}')" title="Lihat Kwitansi">🧾</button>
+                            
+                            @if(auth()->user()->role === 'admin' && $trx->status === 'Diproses')
+                                <form action="{{ route('transaksi.verifikasi', $trx->id) }}" method="POST" style="margin:0" onsubmit="return confirm('Verifikasi bukti transfer ini?');">
+                                    @csrf
+                                    <button type="submit" class="btn btn-primary btn-sm" title="Verifikasi Transaksi">✅ Verifikasi</button>
+                                </form>
+                            @endif
+                        </td>
+                    </tr>
+>>>>>>> 43eb9314b80869898d386f72920947b2fe795e46
                 @empty
                     <tr>
                         <td colspan="8">
                             <div style="text-align:center; padding: 56px 20px;">
                                 <div style="font-size:56px; margin-bottom:12px; opacity:0.6">📭</div>
                                 <h4 style="font-family:'Playfair Display',serif; font-size:18px; font-weight:700; color:var(--g2); margin-bottom:6px;">Belum Ada Transaksi</h4>
+<<<<<<< HEAD
+=======
+                                <p style="font-size:13px; color:var(--muted);">Tidak ada riwayat transaksi ZISWAF yang ditemukan.</p>
+>>>>>>> 43eb9314b80869898d386f72920947b2fe795e46
                             </div>
                         </td>
                     </tr>

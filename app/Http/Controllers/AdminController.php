@@ -134,6 +134,7 @@ class AdminController extends Controller
         KategoriZakat::destroy($id);
         return redirect()->back()->with('success', 'Kategori Zakat berhasil dihapus!');
     }
+<<<<<<< HEAD
 
     // ==========================================
     // UNGGAH BUKTI PENYALURAN (FOTO/VIDEO)
@@ -162,4 +163,6 @@ class AdminController extends Controller
 
         return redirect()->back()->with('success', 'Bukti penyaluran berhasil diunggah dan diteruskan ke Nasabah!');
     }
+=======
+>>>>>>> 43eb9314b80869898d386f72920947b2fe795e46
 }
