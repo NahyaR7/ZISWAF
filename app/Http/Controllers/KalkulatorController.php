@@ -26,25 +26,32 @@ class KalkulatorController extends Controller
     {
         $saldo = floatval($request->saldo ?? 0);
         $hutang = floatval($request->hutang ?? 0);
-        $haul = $request->haul; 
-        $type = $request->type; 
+        $haul = $request->haul;
+        $type = $request->type;
+        $kategoriHarta = $request->kategori ?? 'Emas';
 
         $hartaBersih = $saldo - $hutang;
 
         $hargaEmas = HargaEmas::latest('tanggal')->first();
         // Fallback diubah menjadi standar 2026 yang akurat
         $hargaPerGram = $hargaEmas ? $hargaEmas->harga_emas_per_gram : 2673000;
-        
+
         $nisabEmas = 85 * $hargaPerGram;
         // Hitung dinamis juga untuk perak
         $hargaPerak = $hargaPerGram * 0.0197;
-        $nisabPerak = 595 * $hargaPerak; 
+        $nisabPerak = 595 * $hargaPerak;
 
-        $nisab = ($type === 'penghasilan') ? $nisabPerak : $nisabEmas;
+        if ($type === 'penghasilan' || $kategoriHarta === 'Perak') {
+            $nisab = $nisabPerak;
+        } else {
+            $nisab = $nisabEmas;
+        }
+
         $wajib = ($hartaBersih >= $nisab && $haul === 'ya');
-        
-        $kategori = KategoriZakat::where('nama_kategori', 'like', '%Emas%')->first();
-        $persentase = $kategori ? ($kategori->persentase / 100) : 0.025; 
+
+        $namaKategoriDicari = ($type === 'penghasilan') ? '%Profesi%' : '%Emas%';
+        $kategori = KategoriZakat::where('nama_kategori', 'like', $namaKategoriDicari)->first();
+        $persentase = $kategori ? ($kategori->persentase / 100) : 0.025;
 
         $zakat = $wajib ? ($hartaBersih * $persentase) : 0;
 
@@ -53,7 +60,9 @@ class KalkulatorController extends Controller
             'nisab'  => $nisab,
             'wajib'  => $wajib,
             'zakat'  => $zakat,
-            'haul'   => $haul
+            'haul'   => $haul,
+            'kategori' => $kategoriHarta,
+            'persentase' => $persentase * 100,
         ]);
     }
 

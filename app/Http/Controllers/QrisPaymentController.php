@@ -116,7 +116,9 @@ class QrisPaymentController extends Controller
         }
 
         // Jika sudah selesai sebelumnya, langsung kembalikan tanpa memanggil API lagi.
-        if ($transaction->status === 'Tersalur') {
+        // (tandaiBerhasil() menyetel status ke 'Menunggu Penyaluran', bukan langsung 'Tersalur' -
+        // status itu baru berubah setelah admin mengunggah bukti penyaluran dana.)
+        if (in_array($transaction->status, ['Menunggu Penyaluran', 'Tersalur'], true)) {
             return $this->statusResponse($transaction, 'settlement');
         }
 
@@ -151,8 +153,8 @@ class QrisPaymentController extends Controller
             'success' => true,
             'transaction_status' => $midtransStatus,
             'order_id' => $transaction->transaction_code,
-            'status' => $transaction->status, // Diproses | Tersalur | Batal
-            'paid' => $transaction->status === 'Tersalur',
+            'status' => $transaction->status, // Diproses | Menunggu Penyaluran | Tersalur | Batal
+            'paid' => in_array($transaction->status, ['Menunggu Penyaluran', 'Tersalur'], true),
             'kwitansi_number' => $transaction->kwitansi_number,
             'date' => $transaction->created_at->format('d M Y'),
         ]);

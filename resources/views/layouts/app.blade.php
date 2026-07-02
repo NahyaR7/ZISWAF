@@ -104,6 +104,13 @@
                 <div class="page-sub">@yield('page-subtitle', 'Sistem Informasi Manajemen ZISWAF')</div>
             </div>
             <div class="topbar-right">
+                @php $unreadNotifs = auth()->user()->unreadNotifications; @endphp
+                <button class="btn-notif" onclick="bacaNotifikasi()" title="Notifikasi">🔔
+                    @if($unreadNotifs->count() > 0)
+                        <span class="notif-dot"></span>
+                    @endif
+                </button>
+
                 <div class="date-badge" id="current-date"></div>
                 <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()">🌙</button>
 
@@ -122,7 +129,25 @@
         </div>
     </div>
 
+    @include('partials.modals')
+
     <script src="{{ asset('js/main.js') }}"></script>
+    <script>
+        function bacaNotifikasi() {
+            const pesan = @json($unreadNotifs->count() > 0 ? $unreadNotifs->first()->data['message'] : 'Tidak ada notifikasi baru.');
+            const jumlah = {{ $unreadNotifs->count() }};
+
+            if (jumlah > 0) {
+                showToast('📬 ' + pesan);
+                fetch("{{ route('notifikasi.read') }}").then(() => {
+                    const dot = document.querySelector('.notif-dot');
+                    if (dot) dot.style.display = 'none';
+                });
+            } else {
+                showToast('📭 ' + pesan);
+            }
+        }
+    </script>
     @stack('scripts')
 </body>
 </html>

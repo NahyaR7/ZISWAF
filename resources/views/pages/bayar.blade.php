@@ -192,6 +192,10 @@
             <span id="qris-status-text">Menunggu pembayaran...</span>
           </div>
 
+          <div style="margin-top:14px">
+            <button type="button" class="btn btn-outline btn-sm" id="qris-refresh-btn" onclick="cekStatusQrisManual()">🔄 Cek Status Sekarang</button>
+          </div>
+
           <div style="margin-top:18px; font-size:12px; color:var(--muted)">
             🔒 Pembayaran diproses aman oleh <strong>Midtrans</strong> · Mode Sandbox (Testing)
           </div>

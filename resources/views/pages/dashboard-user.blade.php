@@ -17,18 +17,24 @@
     <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
       <div class="stat-card" data-icon="📊">
         <div class="stat-label">Total Zakat Dibayar</div>
-        <div class="stat-value">Rp 3,75 Jt</div>
+        <div class="stat-value">Rp {{ number_format($totalZakatSaya / 1000000, 2, ',', '.') }} Jt</div>
         <div class="stat-change">Tahun ini</div>
       </div>
       <div class="stat-card gold" data-icon="💛">
         <div class="stat-label">Infaq & Sedekah</div>
-        <div class="stat-value">Rp 1,2 Jt</div>
-        <div class="stat-change">Total donasi</div>
+        <div class="stat-value">Rp {{ number_format($totalInfaqSaya / 1000000, 2, ',', '.') }} Jt</div>
+        <div class="stat-change">Tahun ini</div>
       </div>
       <div class="stat-card blue" data-icon="🔔">
-        <div class="stat-label">Status Nisab</div>
-        <div class="stat-value" style="font-size:18px">Wajib Zakat</div>
-        <div class="stat-change" style="color:var(--g4)">✅ Saldo mencapai nisab</div>
+        <div class="stat-label">Total Transaksi</div>
+        <div class="stat-value" style="font-size:18px">{{ $totalTransaksiSaya }} Transaksi</div>
+        <div class="stat-change" style="color:var(--g4)">
+          @if($transaksiTerakhir)
+            Terakhir: {{ $transaksiTerakhir->status }}
+          @else
+            Belum ada transaksi
+          @endif
+        </div>
       </div>
     </div>
 
@@ -69,14 +75,13 @@
         <div class="card-header"><div class="card-title">Status Auto-Deduction Saya</div></div>
         <div class="card-body">
           <div style="background:var(--g8);border-radius:12px;padding:16px;border:1px solid var(--border);margin-bottom:16px">
-            <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Saldo Tabungan</div>
-            <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--g2)">Rp 150.000.000</div>
-            <div style="font-size:12px;color:var(--g4);margin-top:4px">✅ Mencapai nisab emas</div>
+            <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Saldo Tabungan Tercatat</div>
+            <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--g2)">Rp {{ number_format(auth()->user()->saldo ?? 0, 0, ',', '.') }}</div>
+            <div style="font-size:12px;color:{{ auth()->user()->haul_terpenuhi ? 'var(--g4)' : 'var(--muted)' }};margin-top:4px">
+              {{ auth()->user()->haul_terpenuhi ? '✅ Haul terpenuhi, terdaftar Auto-Deduction' : '⏳ Belum terdaftar Auto-Deduction' }}
+            </div>
           </div>
-          <div class="setting-row">
-            <div class="setting-info"><h4>Auto-Deduction Zakat</h4><p>Pemotongan otomatis setiap tahun</p></div>
-            <button class="toggle on" onclick="this.classList.toggle('on');showToast('⚡ Pengaturan auto-deduction diperbarui')"></button>
-          </div>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:0">Saldo dan status haul dicatat oleh admin BMT saat Anda mendaftar sebagai anggota. Hubungi admin untuk memperbarui data ini.</p>
           <div style="margin-top:14px">
             <a href="{{ route('kalkulator') }}" class="btn btn-primary" style="width:100%;justify-content:center;text-decoration:none;">⚖️ Hitung Zakat Saya Sekarang</a>
           </div>

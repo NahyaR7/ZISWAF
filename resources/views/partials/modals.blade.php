@@ -6,27 +6,24 @@
       <button class="modal-close" onclick="closeModal('modal-donasi')">✕</button>
     </div>
     <div class="modal-body">
+      <input type="hidden" id="donasi-program-id" value="">
       <div class="input-group">
           <label class="input-label">Nama Donatur</label>
-          <input type="text" class="input-field" placeholder="Nama Anda" value="Fathur Rahman">
+          <input type="text" class="input-field" id="donasi-nama" placeholder="Nama Anda" value="{{ auth()->user()->name ?? '' }}">
       </div>
       <div class="input-group">
           <label class="input-label">Nominal Donasi (Rp)</label>
-          <div class="input-prefix"><span>Rp</span><input type="number" class="input-field" placeholder="50000"></div>
+          <div class="input-prefix"><span>Rp</span><input type="number" class="input-field" id="donasi-nominal" placeholder="50000"></div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
-        <button class="btn btn-ghost btn-sm" onclick="setNominal(50000)">50 rb</button>
-        <button class="btn btn-ghost btn-sm" onclick="setNominal(100000)">100 rb</button>
-        <button class="btn btn-ghost btn-sm" onclick="setNominal(250000)">250 rb</button>
-        <button class="btn btn-ghost btn-sm" onclick="setNominal(500000)">500 rb</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="setNominal(50000)">50 rb</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="setNominal(100000)">100 rb</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="setNominal(250000)">250 rb</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="setNominal(500000)">500 rb</button>
       </div>
       <div class="input-group">
           <label class="input-label">Metode Pembayaran</label>
-          <select class="input-field"><option>Transfer Bank</option><option>QRIS</option><option>Potong Tabungan</option></select>
-      </div>
-      <div class="input-group">
-          <label class="input-label">Pesan (opsional)</label>
-          <input type="text" class="input-field" placeholder="Atas nama / harapan Anda">
+          <select class="input-field" id="donasi-metode"><option>Transfer Bank</option><option>QRIS</option><option>Potong Tabungan</option></select>
       </div>
     </div>
     <div class="modal-footer">

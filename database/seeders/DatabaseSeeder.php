@@ -10,6 +10,7 @@ use App\Models\KategoriZakat;
 use App\Models\HargaEmas;
 use App\Models\RekeningBMT;
 use App\Models\Transaction;
+use App\Models\Program;
 
 class DatabaseSeeder extends Seeder
 {
@@ -17,13 +18,14 @@ class DatabaseSeeder extends Seeder
     {
         // 1. Buat Akun Users
         $admin = User::create([
-            'name' => "Ahmad Syafi'i", 'username' => 'admin', 'email' => 'admin@bmtpondokhijau.id', 
+            'name' => "Ahmad Syafi'i", 'username' => 'admin', 'email' => 'admin@bmtpondokhijau.id',
             'password' => Hash::make('admin123'), 'role' => 'admin', 'no_hp' => '081234567890'
         ]);
 
         $nasabah = User::create([
-            'name' => 'Fathur Rahman', 'username' => 'nasabah', 'email' => 'fathur@contoh.com', 
-            'password' => Hash::make('nasabah123'), 'role' => 'nasabah', 'no_hp' => '089876543210'
+            'name' => 'Fathur Rahman', 'username' => 'nasabah', 'email' => 'fathur@contoh.com',
+            'password' => Hash::make('nasabah123'), 'role' => 'nasabah', 'no_hp' => '089876543210',
+            'saldo' => 150000000, 'haul_terpenuhi' => true,
         ]);
 
         // 2. Buat Jenis ZISWAF
@@ -60,5 +62,10 @@ class DatabaseSeeder extends Seeder
             'status' => 'Tersalur',
             'kwitansi_number' => 'KW-2026-0046'
         ]);
+
+        // 7. Program Donasi (Marketplace)
+        Program::create(['nama' => 'Zakat Fitrah 1447H', 'organisasi' => 'BAZNAS Pusat', 'tipe' => 'zakat', 'icon' => '🕌', 'target' => 100000000]);
+        Program::create(['nama' => 'Beasiswa Santri Berprestasi', 'organisasi' => 'Dompet Dhuafa', 'tipe' => 'infaq', 'icon' => '📚', 'target' => 50000000]);
+        Program::create(['nama' => 'Sumur Wakaf Pelosok', 'organisasi' => 'BMT Pondok Hijau', 'tipe' => 'wakaf', 'icon' => '💧', 'target' => 25000000]);
     }
 }

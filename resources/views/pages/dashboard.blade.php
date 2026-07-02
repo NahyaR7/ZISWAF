@@ -9,30 +9,30 @@
     <div class="stats-grid">
       <div class="stat-card" data-icon="🕌">
         <div class="stat-label">Total Zakat Terkumpul</div>
-        <div class="stat-value">Rp 48,7 Jt</div>
-        <div class="stat-change">↑ 12% dari bulan lalu</div>
+        <div class="stat-value">Rp {{ number_format($totalZakat / 1000000, 1, ',', '.') }} Jt</div>
+        <div class="stat-change">{{ is_null($perubahanZakat) ? 'Belum ada data bulan lalu' : (($perubahanZakat >= 0 ? '↑ ' : '↓ ') . abs($perubahanZakat) . '% dari bulan lalu') }}</div>
       </div>
       <div class="stat-card gold" data-icon="💛">
         <div class="stat-label">Infaq & Sedekah</div>
-        <div class="stat-value">Rp 23,1 Jt</div>
-        <div class="stat-change">↑ 8% dari bulan lalu</div>
+        <div class="stat-value">Rp {{ number_format($totalInfaq / 1000000, 1, ',', '.') }} Jt</div>
+        <div class="stat-change">{{ is_null($perubahanInfaq) ? 'Belum ada data bulan lalu' : (($perubahanInfaq >= 0 ? '↑ ' : '↓ ') . abs($perubahanInfaq) . '% dari bulan lalu') }}</div>
       </div>
       <div class="stat-card blue" data-icon="🌱">
         <div class="stat-label">Dana Wakaf</div>
-        <div class="stat-value">Rp 15,3 Jt</div>
-        <div class="stat-change">↑ 5% dari bulan lalu</div>
+        <div class="stat-value">Rp {{ number_format($totalWakaf / 1000000, 1, ',', '.') }} Jt</div>
+        <div class="stat-change">{{ is_null($perubahanWakaf) ? 'Belum ada data bulan lalu' : (($perubahanWakaf >= 0 ? '↑ ' : '↓ ') . abs($perubahanWakaf) . '% dari bulan lalu') }}</div>
       </div>
       <div class="stat-card purple" data-icon="👥">
         <div class="stat-label">Anggota Aktif ZISWAF</div>
-        <div class="stat-value">342</div>
-        <div class="stat-change">↑ 18 anggota baru</div>
+        <div class="stat-value">{{ $totalAnggota }}</div>
+        <div class="stat-change">↑ {{ $anggotaBaruBulanIni }} anggota baru bulan ini</div>
       </div>
     </div>
 
     <div class="card" style="margin-top: 24px;">
       <div class="card-header">
         <div class="card-title">Transaksi Terbaru</div>
-        <button class="btn btn-outline btn-sm">Lihat Semua →</button>
+        <a href="{{ route('transaksi') }}" class="btn btn-outline btn-sm" style="text-decoration:none;">Lihat Semua →</a>
       </div>
       <div class="table-wrap">
         <table>

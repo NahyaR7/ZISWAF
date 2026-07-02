@@ -21,6 +21,10 @@ class Transaction extends Model
         return $this->belongsTo(Payment::class);
     }
 
+    public function program() {
+        return $this->belongsTo(Program::class);
+    }
+
     public function tandaiBerhasil(?int $verifiedBy = null): void
     {
         // Cegah proses ganda

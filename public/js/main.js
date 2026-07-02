@@ -1,24 +1,3 @@
-// ===================== DATA MOCKUP =====================
-const NISAB_EMAS = 114325000;
-const NISAB_PERAK = 15820000;
-
-const CHART_DATA = [
-  {m:'Jan',z:80,i:40,w:25},{m:'Feb',z:95,i:50,w:30},{m:'Mar',z:110,i:55,w:28},
-  {m:'Apr',z:100,i:45,w:35},{m:'Mei',z:130,i:65,w:40},{m:'Jun',z:120,i:60,w:38}
-];
-
-const ANGGOTA = [
-  {id:'BMT-0021',name:'Fathur Rahman',saldo:150000000,haul:true,auto:true,total:11250000},
-  {id:'BMT-0034',name:'Siti Nurazizah',saldo:120000000,haul:true,auto:false,total:9000000},
-  {id:'BMT-0056',name:'Hendra Saputra',saldo:200000000,haul:true,auto:true,total:15000000}
-];
-
-const PROGRAMS = [
-  {name:'Zakat Fitrah 1444H',org:'BAZNAS Pusat',type:'zakat',icon:'🕌',bg:'prog-zakat',collected:84000000,target:100000000},
-  {name:'Beasiswa Santri Berprestasi',org:'Dompet Dhuafa',type:'infaq',icon:'📚',bg:'prog-infaq',collected:37500000,target:50000000},
-  {name:'Sumur Wakaf Pelosok',org:'BMT Pondok Hijau',type:'wakaf',icon:'💧',bg:'prog-wakaf',collected:12000000,target:25000000}
-];
-
 let currentPayStep = 1;
 let selectedZiswafType = '';
 
@@ -52,95 +31,16 @@ function closeModal(id) {
   if(modal) modal.classList.remove('open');
 }
 
-// ===================== RENDER FUNGSI (CHART, TABLE, DLL) =====================
-function renderChart() {
-  const max = 160;
-  const bar = document.getElementById('chart-bar');
-  if(!bar) return; 
-  bar.innerHTML = CHART_DATA.map(d => `
-    <div class="bar-group">
-      <div class="bar-wrap">
-        <div class="bar zakat" style="height:${(d.z/max*100)}%" title="Zakat Rp ${d.z} rb"></div>
-        <div class="bar infaq" style="height:${(d.i/max*100)}%" title="Infaq Rp ${d.i} rb"></div>
-        <div class="bar wakaf" style="height:${(d.w/max*100)}%" title="Wakaf Rp ${d.w} rb"></div>
-      </div>
-      <div class="bar-month">${d.m}</div>
-    </div>`).join('');
-}
-
-function renderAnggota(data) {
-  const el = document.getElementById('anggota-table');
-  if(!el) return;
-  el.innerHTML = data.map(a => {
-    const nisab = a.saldo >= NISAB_PERAK;
-    const wajib = nisab && a.haul;
-    return `<tr>
-      <td style="font-family:monospace;font-size:11.5px">${a.id}</td>
-      <td style="font-weight:600">${a.name}</td>
-      <td style="font-weight:700">Rp ${(a.saldo/1000000).toFixed(1)} Jt</td>
-      <td><span class="badge ${wajib?'badge-green':nisab?'badge-gold':'badge-red'}">${wajib?'✅ Wajib Zakat':nisab?'⏳ Belum Haul':'❌ Belum Nisab'}</span></td>
-      <td><span class="badge ${a.auto?'badge-green':'badge-red'}">${a.auto?'Aktif':'Nonaktif'}</span></td>
-      <td style="font-weight:700;color:var(--g3)">Rp ${(a.total/1000000).toFixed(1)} Jt</td>
-      <td><button class="btn btn-outline btn-sm" onclick="showToast('📋 Detail ${a.name} dibuka')">Detail</button></td>
-    </tr>`;
-  }).join('');
-}
-
-function renderAutoDeduction() {
-  const el = document.getElementById('auto-deduction-table');
-  if(!el) return;
-  const wajib = ANGGOTA.filter(a => a.saldo >= NISAB_PERAK && a.haul);
-  const countBadge = document.getElementById('auto-deduction-count');
-  if(countBadge) countBadge.textContent = wajib.length + ' Anggota';
-  
-  el.innerHTML = wajib.map(a => {
-    const z = a.saldo * 0.025;
-    return `<tr>
-      <td style="font-family:monospace;font-size:11.5px">${a.id}</td>
-      <td style="font-weight:600">${a.name}</td>
-      <td>Rp ${(a.saldo/1000000).toFixed(1)} Jt</td>
-      <td>Rp ${(a.saldo/1000000).toFixed(1)} Jt</td>
-      <td><span class="badge badge-green">✅ Terpenuhi</span></td>
-      <td style="font-weight:800;color:var(--g3)">Rp ${(z/1000).toLocaleString('id-ID')}</td>
-      <td><button class="btn btn-primary btn-sm" onclick="showToast('⚡ Zakat ${a.name} berhasil dipotong!')">⚡ Potong</button></td>
-    </tr>`;
-  }).join('');
-}
-
-function renderPrograms(filter='semua') {
-  const grid = document.getElementById('program-grid');
-  if(!grid) return;
-  const data = filter==='semua' ? PROGRAMS : PROGRAMS.filter(p=>p.type===filter);
-  grid.innerHTML = data.map(p => {
-    const pct = Math.min((p.collected/p.target)*100,100).toFixed(0);
-    return `<div class="program-card">
-      <div class="program-img ${p.bg}">${p.icon}</div>
-      <div class="program-body">
-        <div class="program-name">${p.name}</div>
-        <div class="program-org">🏛 ${p.org}</div>
-        <div class="progress-bar-wrap"><div class="progress-fill ${p.type==='infaq'||p.type==='wakaf'?'gold':''}" style="width:${pct}%"></div></div>
-        <div class="prog-amounts">
-          <div><span class="prog-collected">Rp ${(p.collected/1000000).toFixed(1)} Jt</span> terkumpul</div>
-          <div>Target Rp ${(p.target/1000000).toFixed(0)} Jt</div>
-        </div>
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:12px;color:var(--muted)">${pct}% tercapai</span>
-          <button class="btn btn-primary btn-sm" onclick="openModalDonasi('${p.name}','${p.org}')">Donasi ➤</button>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
 // ===================== FUNGSI SINKRONISASI GRAM + TUNAI =====================
 function toggleGramInput() {
-  const kategori = document.getElementById('kategori-harta').value;
+  const kategoriEl = document.getElementById('kategori-harta');
   const wrapGram = document.getElementById('wrap-jumlah-gram');
   const wrapTunai = document.getElementById('wrap-harta-tunai');
   const gramInput = document.getElementById('gram-input');
   const tunaiInput = document.getElementById('tunai-input');
 
-  if (!wrapGram) return;
+  if (!kategoriEl || !wrapGram) return;
+  const kategori = kategoriEl.value;
 
   if (kategori === 'Emas' || kategori === 'Perak') {
     // Emas/Perak: tampilkan input gram, sembunyikan harta tunai
@@ -192,64 +92,53 @@ function hitungTotalHarta() {
 async function hitungZakat() {
     const saldoInput = document.getElementById('saldo-input');
     const kategoriEl = document.getElementById('kategori-harta');
-    const kategori = kategoriEl ? kategoriEl.value : 'Emas'; 
+    const kategori = kategoriEl ? kategoriEl.value : 'Emas';
     const type = document.getElementById('zakat-type').value;
-    
-    if(!saldoInput) return; 
-    
+
+    if(!saldoInput) return;
+
     const r = document.getElementById('kalkulator-result');
     if(!r) return;
-  
+
     r.innerHTML = `<div style="text-align:center;padding:20px"><div style="font-size:32px;animation:pulse 1s infinite">⚙️</div><div style="margin-top:10px;color:var(--g3);font-weight:bold;">Sistem sedang menghitung...</div></div>`;
-  
-    setTimeout(() => {
-        const elEmas = document.getElementById('teks-harga-emas');
-        const elPerak = document.getElementById('teks-harga-perak');
-        
-        const hargaEmas = elEmas ? parseFloat(elEmas.innerText.replace(/[^0-9]/g, '')) : 2673000;
-        const hargaPerak = elPerak ? parseFloat(elPerak.innerText.replace(/[^0-9]/g, '')) : 52658;
-        
-        const saldo = parseFloat(saldoInput.value) || 0;
-        const hutang = parseFloat(document.getElementById('hutang-input').value) || 0;
-        const haul = document.getElementById('haul-input').value;
-        
-        const bersih = saldo - hutang;
-        
-        let nisab = 0;
-        if (type === 'penghasilan') {
-            nisab = 15820000; 
-        } else {
-            nisab = (kategori === 'Perak') ? (595 * hargaPerak) : (85 * hargaEmas);
-        }
-        
-        const wajib = (bersih >= nisab && haul === 'ya');
-        const zakat = wajib ? (bersih * 0.025) : 0;
-        
+
+    const saldo = parseFloat(saldoInput.value) || 0;
+    const hutang = parseFloat(document.getElementById('hutang-input').value) || 0;
+    const haul = document.getElementById('haul-input').value;
+
+    const params = new URLSearchParams({ saldo, hutang, haul, type, kategori });
+
+    try {
+        const response = await fetch('/kalkulator/hitung?' + params.toString());
+        const data = await response.json();
+
         const fmt = n => 'Rp ' + Math.round(n).toLocaleString('id-ID');
-        
+
         r.innerHTML = `
           <div class="result-box" style="animation: fadeIn 0.4s ease;">
             <div class="result-label">Harta Bersih (Saldo − Hutang)</div>
-            <div class="result-value">${fmt(bersih)}</div>
-            <div class="result-note">Nisab ${type === 'penghasilan' ? 'Profesi' : kategori}: ${fmt(nisab)}</div>
+            <div class="result-value">${fmt(data.bersih)}</div>
+            <div class="result-note">Nisab ${type === 'penghasilan' ? 'Profesi' : kategori}: ${fmt(data.nisab)}</div>
           </div>
-          <div class="nisab-status ${wajib?'wajib':'belum'}" style="animation: fadeIn 0.4s ease; padding: 12px; border-radius: 8px; margin-top: 10px; background: ${wajib ? 'var(--gold3)' : 'var(--g8)'};">
+          <div class="nisab-status ${data.wajib?'wajib':'belum'}" style="animation: fadeIn 0.4s ease; padding: 12px; border-radius: 8px; margin-top: 10px; background: ${data.wajib ? 'var(--gold3)' : 'var(--g8)'};">
             <div style="display:flex; align-items:center; gap:8px;">
-                <div class="status-icon" style="font-size:24px">${wajib?'✅':'⏳'}</div>
-                <div style="font-weight:700; color:var(--g3)">${wajib?'Wajib Zakat':'Belum Mencapai Nisab/Haul'}</div>
+                <div class="status-icon" style="font-size:24px">${data.wajib?'✅':'⏳'}</div>
+                <div style="font-weight:700; color:var(--g3)">${data.wajib?'Wajib Zakat':'Belum Mencapai Nisab/Haul'}</div>
             </div>
           </div>
-          ${wajib?`
+          ${data.wajib?`
           <div class="result-box" style="margin-top:14px;background:var(--gold3);border-color:rgba(201,168,76,0.3); animation: fadeIn 0.4s ease;">
-            <div class="result-label" style="color:#a07828">Jumlah Zakat Anda</div>
-            <div class="result-value" style="color:var(--g1)">${fmt(zakat)}</div>
+            <div class="result-label" style="color:#a07828">Jumlah Zakat Anda (${data.persentase}%)</div>
+            <div class="result-value" style="color:var(--g1)">${fmt(data.zakat)}</div>
           </div>
           <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap; animation: fadeIn 0.4s ease;">
-            <a href="/bayar?nominal=${Math.round(zakat)}" class="btn btn-primary">💳 Bayar Zakat Sekarang</a>
+            <a href="/bayar?nominal=${Math.round(data.zakat)}" class="btn btn-primary">💳 Bayar Zakat Sekarang</a>
             <a href="/marketplace" class="btn btn-outline">🕌 Pilih Lembaga</a>
           </div>`:''}
         `;
-    }, 400); 
+    } catch (e) {
+        r.innerHTML = `<div style="text-align:center;padding:20px;color:var(--muted)">❌ Gagal menghitung zakat. Coba lagi.</div>`;
+    }
 }
 
 // Logika Tarik Data (Polling) Live Harga setiap 5 detik
@@ -292,6 +181,60 @@ async function fetchLiveHarga() {
     } catch (error) {
         console.log('Sinkronisasi live background tertunda.');
     }
+}
+
+// ===================== MARKETPLACE DONASI =====================
+function filterProgram(type, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  document.querySelectorAll('#program-grid [data-tipe]').forEach(card => {
+    card.style.display = (type === 'semua' || card.dataset.tipe === type) ? '' : 'none';
+  });
+}
+
+function openModalDonasi(programId, programName, programOrg) {
+  document.getElementById('donasi-program-id').value = programId;
+  document.getElementById('modal-donasi-title').textContent = programName;
+  document.getElementById('modal-donasi-org').textContent = '🏛 ' + programOrg;
+  openModal('modal-donasi');
+}
+
+function setNominal(v) {
+  const input = document.getElementById('donasi-nominal');
+  if (input) input.value = v;
+}
+
+async function konfirmasiDonasi() {
+  const programId = document.getElementById('donasi-program-id').value;
+  const nama = document.getElementById('donasi-nama').value;
+  const nominal = parseInt(document.getElementById('donasi-nominal').value) || 0;
+  const metode = document.getElementById('donasi-metode').value;
+
+  if (!nominal || nominal < 10000) { showToast('⚠️ Minimal donasi adalah Rp 10.000'); return; }
+
+  try {
+    const response = await fetch('/marketplace/donasi', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+      },
+      body: JSON.stringify({ program_id: programId, nama, nominal, metode }),
+    });
+    const result = await response.json();
+
+    if (result.success) {
+      closeModal('modal-donasi');
+      const isManual = result.status === 'Diproses';
+      showToast(isManual ? '🕒 Donasi dicatat. Menunggu verifikasi admin.' : '🎉 Donasi berhasil! Kwitansi terbit: ' + result.kwitansi_number);
+    } else {
+      showToast('❌ ' + (result.message || 'Gagal memproses donasi.'));
+    }
+  } catch (e) {
+    showToast('❌ Terjadi kesalahan jaringan saat memproses donasi');
+  }
 }
 
 // ===================== FUNGSI PEMBAYARAN & API =====================
@@ -551,21 +494,42 @@ async function cekStatusQris(orderId) {
       headers: { 'Accept': 'application/json' },
     });
     const result = await response.json();
-    if (!result.success) return;
+    if (!result.success) return 'error';
 
     if (result.paid) {
       hentikanPollingQris();
       document.getElementById('qris-status-text').textContent = '✅ Pembayaran diterima!';
       showToast('🎉 Pembayaran QRIS berhasil! Kwitansi terbit.');
       setTimeout(() => tampilkanSuksesQris(result), 800);
+      return 'paid';
     } else if (result.status === 'Batal') {
       hentikanPollingQris();
       document.getElementById('qris-status-text').textContent = '⌛ QRIS kadaluarsa / dibatalkan.';
       showToast('⚠️ Pembayaran QRIS kadaluarsa atau dibatalkan.');
+      return 'batal';
     }
+    return 'pending';
   } catch (e) {
     // Abaikan error sementara; polling berikutnya akan mencoba lagi.
+    return 'error';
   }
+}
+
+async function cekStatusQrisManual() {
+  if (!qrisOrderId) return;
+
+  const btn = document.getElementById('qris-refresh-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '🔄 Memeriksa...'; }
+
+  const hasil = await cekStatusQris(qrisOrderId);
+
+  if (hasil === 'pending') {
+    showToast('⏳ Belum ada pembayaran masuk. Coba lagi setelah simulasi bayar di Midtrans.');
+  } else if (hasil === 'error') {
+    showToast('❌ Gagal menghubungi server untuk cek status.');
+  }
+
+  if (btn) { btn.disabled = false; btn.textContent = '🔄 Cek Status Sekarang'; }
 }
 
 function tampilkanSuksesQris(result) {
@@ -692,11 +656,6 @@ function init() {
   const el = document.getElementById('current-date');
   if(el) el.textContent = now.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
 
-  renderChart();
-  renderAnggota(ANGGOTA);
-  renderAutoDeduction();
-  renderPrograms();
-  
   // Menginisialisasi input awal saat halaman baru dibuka
   toggleGramInput();
 

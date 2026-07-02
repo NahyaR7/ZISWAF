@@ -47,7 +47,7 @@
                         </div>
 
                     @elseif($trx->status === 'Tersalur')
-                        @php $isMovementMedia = Str::endsWith($trx->bukti_penyaluran, ['.mp4', '.mov', '.webm']); @endphp
+                        @php $isMovementMedia = \Illuminate\Support\Str::endsWith($trx->bukti_penyaluran, ['.mp4', '.mov', '.webm']); @endphp
                         <div style="background:#000; height:240px; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;">
                             @if($isMovementMedia)
                                 <video controls style="width:100%; height:100%; object-fit:cover;">
